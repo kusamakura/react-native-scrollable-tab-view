@@ -6,11 +6,10 @@ var {
   Text,
   View,
   TouchableOpacity,
-  Dimensions,
+  Animated,
 } = React;
 
 var { Icon, } = require('react-native-icons');
-var deviceWidth = Dimensions.get('window').width;
 
 var styles = StyleSheet.create({
   tab: {
@@ -19,7 +18,6 @@ var styles = StyleSheet.create({
     justifyContent: 'center',
     paddingBottom: 10,
   },
-
   tabs: {
     height: 45,
     flexDirection: 'row',
@@ -29,6 +27,13 @@ var styles = StyleSheet.create({
     borderLeftWidth: 0,
     borderRightWidth: 0,
     borderBottomColor: 'rgba(0,0,0,0.05)',
+  },
+  icon: {
+    width: 30,
+    height: 30,
+    position: 'absolute',
+    top: 0,
+    left: 20,
   },
 });
 
@@ -44,37 +49,62 @@ var FacebookTabBar = React.createClass({
 
   renderTabOption(name, page) {
     var isTabActive = this.props.activeTab === page;
-    console.log(name);
 
     return (
-      <TouchableOpacity key={name} onPress={() => this.props.goToPage(page)}>
-        <View style={[styles.tab]}>
-          <Icon name={name} size={30} color='#3B5998' style={{width: 30, height: 30, position: 'absolute', top: 0, left: 20}}
-                ref={(icon) => { this.selectedTabIcons[page] = icon }}/>
-          <Icon name={name} size={30} color='#ccc' style={{width: 30, height: 30, position: 'absolute', top: 0, left: 20}}
-                ref={(icon) => { this.unselectedTabIcons[page] = icon }}/>
-        </View>
+      <TouchableOpacity key={name} onPress={() => this.props.goToPage(page)} style={styles.tab}>
+        <Icon name={name} size={30} color='#3B5998' style={styles.icon}
+              ref={(icon) => { this.selectedTabIcons[page] = icon }}/>
+        <Icon name={name} size={30} color='#ccc' style={styles.icon}
+              ref={(icon) => { this.unselectedTabIcons[page] = icon }}/>
       </TouchableOpacity>
     );
   },
 
-  setAnimationValue(value) {
+  componentDidMount() {
+    this.setAnimationValue({value: this.props.activeTab});
+    this._listener = this.props.scrollValue.addListener(this.setAnimationValue);
+  },
+
+  setAnimationValue({value}) {
     var currentPage = this.props.activeTab;
 
     this.unselectedTabIcons.forEach((icon, i) => {
+      var iconRef = icon;
+
+      if (!icon.setNativeProps && icon !== null) {
+        iconRef = icon.refs.icon_image
+      }
+
       if (value - i >= 0 && value - i <= 1) {
-        icon.setNativeProps({opacity: value - i});
+        iconRef.setNativeProps({opacity: value - i});
       }
       if (i - value >= 0 &&  i - value <= 1) {
-        icon.setNativeProps({opacity: i - value});
+        iconRef.setNativeProps({opacity: i - value});
       }
     });
   },
 
   render() {
+    var containerWidth = this.props.containerWidth;
+    var numberOfTabs = this.props.tabs.length;
+    var tabUnderlineStyle = {
+      position: 'absolute',
+      width: containerWidth / numberOfTabs,
+      height: 3,
+      backgroundColor: '#3b5998',
+      bottom: 0,
+    };
+
+    var left = this.props.scrollValue.interpolate({
+      inputRange: [0, 1], outputRange: [0, containerWidth / numberOfTabs]
+    });
+
     return (
-      <View style={styles.tabs}>
-        {this.props.tabs.map((tab, i) => this.renderTabOption(tab, i))}
+      <View>
+        <View style={styles.tabs}>
+          {this.props.tabs.map((tab, i) => this.renderTabOption(tab, i))}
+        </View>
+        <Animated.View style={[tabUnderlineStyle, {left}]} />
       </View>
     );
   },

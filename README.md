@@ -6,6 +6,8 @@ implementation of it for React Native. For more information about how
 the animations behind this work, check out the Rebound section of the
 [React Native Animation Guide](https://facebook.github.io/react-native/docs/animations.html)
 
+Tested with react-native 0.15
+
 ## Add it to your project
 
 1. Run `npm install react-native-scrollable-tab-view --save`
@@ -31,7 +33,7 @@ var App = React.createClass({
       </ScrollableTabView>
     );
   }
-}
+});
 ```
 
 ## Injecting a custom tab bar
@@ -53,91 +55,13 @@ var App = React.createClass({
       </ScrollableTabView>
     );
   }
-}
+});
 ```
 
-Below is the default tab bar, renamed to CustomTabBar, you can use this
-as a template for implementing your own.
+## Example
 
-```javascript
-var React = require('react-native');
-var {
-  StyleSheet,
-  Text,
-  View,
-  TouchableOpacity,
-} = React;
-
-var deviceWidth = require('Dimensions').get('window').width;
-var precomputeStyle = require('precomputeStyle');
-var TAB_UNDERLINE_REF = 'TAB_UNDERLINE';
-
-var styles = StyleSheet.create({
-  tab: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingBottom: 10,
-  },
-
-  tabs: {
-    height: 50,
-    flexDirection: 'row',
-    marginTop: 20,
-    borderWidth: 1,
-    borderTopWidth: 0,
-    borderLeftWidth: 0,
-    borderRightWidth: 0,
-    borderBottomColor: '#ccc',
-  },
-});
-
-var CustomTabBar = React.createClass({
-  propTypes: {
-    goToPage: React.PropTypes.func,
-    activeTab: React.PropTypes.number,
-    tabs: React.PropTypes.array
-  },
-
-  renderTabOption(name, page) {
-    var isTabActive = this.props.activeTab === page;
-
-    return (
-      <TouchableOpacity key={name} onPress={() => this.props.goToPage(page)}>
-        <View style={[styles.tab]}>
-          <Text style={{color: isTabActive ? 'navy' : 'black', fontWeight: isTabActive ? 'bold' : 'normal'}}>{name}</Text>
-        </View>
-      </TouchableOpacity>
-    );
-  },
-
-  setAnimationValue(value) {
-    this.refs[TAB_UNDERLINE_REF].setNativeProps(precomputeStyle({
-      left: (deviceWidth * value) / this.props.tabs.length
-    }));
-  },
-
-  render() {
-    var numberOfTabs = this.props.tabs.length;
-    var tabUnderlineStyle = {
-      position: 'absolute',
-      width: deviceWidth / numberOfTabs,
-      height: 4,
-      backgroundColor: 'navy',
-      bottom: 0,
-    };
-
-    return (
-      <View style={styles.tabs}>
-        {this.props.tabs.map((tab, i) => this.renderTabOption(tab, i))}
-        <View style={tabUnderlineStyle} ref={TAB_UNDERLINE_REF} />
-      </View>
-    );
-  },
-});
-
-module.exports = CustomTabBar;
-```
+See
+[examples/FacebookTabsExample](https://github.com/brentvatne/react-native-scrollable-tab-view/tree/master/examples/FacebookTabsExample).
 
 ## Props
 
@@ -145,14 +69,18 @@ module.exports = CustomTabBar;
   the tab bar. The component has `goToPage`, `tabs`, `activeTab` and
   `ref` added to the props, and should implement `setAnimationValue` to
   be able to animate itself along with the tab content.
+- **`tabBarPosition`** _(String)_ - if `"top"`, the tab bar will render above the tabs. If `"bottom"`, the tab bar will render below the tabs. Defaults to `"top"`.
 - **`onChangeTab`** _(Function)_ - function to call when tab changes, should accept 1 argument which is an Object containing two keys: `i`: the index of the tab that is selected, `ref`: the ref of the tab that is selected
-- **`edgeHitWidth`** _(Integer)_ - region (in pixels) from the left & right edges of the screen that can trigger swipe. Default is 30, which is the same as the swipe-back gesture on iOS.
-- **`hasTouch`** _(Function)_ - returns `true` when ScrollableTabView starts being panned and `false` when it is released. Not triggered when `locked` (Bool) is true.
-- **`locked`** _(Bool)_ - dynamically disable scrolling between tabs.
-- **`springTension`** _(Integer)_ - a number between `1` and `100`, controls the amount of tension on the spring that guides the scroll animation - see [example](http://facebook.github.io/rebound-js/examples/#graph-canvas).
-- **`springFriction`** _(Integer)_ - a number between `1` and `30`, controls the amount of friction on the spring that guides the scroll animation - see [example](http://facebook.github.io/rebound-js/examples/#graph-canvas).
-- **`clampSpring`** _(Bool)_ - if `true`, the spring will not bounce at all - if `false`, it will oscillate around the target value before settling.
+- **`onScroll`** _(Function)_ - function to call when the pages are sliding, should accept 1 argument which is an Float number representing the page position in the slide frame. 
+- **`locked`** _(Bool)_ - disables horizontal dragging to scroll between tabs, default is false.
+- **`initialPage`** _(Integer)_ - the index of the initially selected tab, defaults to 0 === first tab.
+- **`page`** _(Integer)_ - set selected tab(can be buggy see  [#126](https://github.com/brentvatne/react-native-scrollable-tab-view/issues/126)
 - **`children`** _(ReactComponents)_ - each top-level child component should have a `tabLabel` prop that can be used by the tab bar component to render out the labels. The default tab bar expects it to be a string, but you can use anything you want if you make a custom tab bar.
+- **`tabBarUnderlineColor`** _(String)_ - color of the default tab bar's underline, defaults to `navy`
+- **`tabBarBackgroundColor`** _(String)_ - color of the default tab bar's background, defaults to `white`
+- **`tabBarActiveTextColor`** _(String)_ - color of the default tab bar's text when active, defaults to `navy`
+- **`tabBarInactiveTextColor`** _(String)_ - color of the default tab bar's text when inactive, defaults to `black`
+- **`style`** _([View.propTypes.style](https://facebook.github.io/react-native/docs/view.html#style))_
 
 ---
 
